@@ -2,8 +2,6 @@ Secure Microservices Platform with Terraform, Helm & AWS EKS
 
 Project Overview
 
-Project Overview
-
 This project delivers a secure, production-grade microservices platform on AWS EKS, built from scratch using Terraform and Helm. It reflects real-world DevSecOps workflows, emphasizing automation, observability, and security-first infrastructure.
 
 Infrastructure is provisioned with modular Terraform, featuring dynamic VPC, IAM, and EKS modules. State is managed via S3 and DynamoDB with locking and versioning. Teardown scripts ensure frictionless cleanup and future-proof migrations.
