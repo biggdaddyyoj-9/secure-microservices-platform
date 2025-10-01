@@ -1,4 +1,4 @@
-Secure Microservices Platform with Terraform, Helm & AWS EKS
+Secure Microservices Platform with Terraform, Helm, AWS EKS, Python, & more.
 
 Project Overview
 
