@@ -43,7 +43,7 @@ Infrastructure (Terraform)
 
     Modular Terraform structure with remote state locking via S3 + DynamoDB
 
-Platform Add-ons (Helm) 
+2 - Platform Add-ons (Helm) 
 
     Istio Service mesh with mTLS for service to service encryption 
 
@@ -55,7 +55,7 @@ Platform Add-ons (Helm)
 
     Prometheus + Grafana for monitoring 
 
-Security/Compliance 
+3 - Security/Compliance 
 
     Namespace-level multi-tenancy with RBAC, LimitRanges, and NetworkPolicies. 
 
@@ -67,7 +67,7 @@ Security/Compliance
 
     Node hardening via Ansible STIG baseline (ssh lockdown, auditd, sysctl). 
 
-CI/CD (GitLab or GitHub Actions) 
+4 - CI/CD (GitLab or GitHub Actions) 
 
     Build → Scan → Push → Deploy stages. 
 
@@ -77,7 +77,7 @@ CI/CD (GitLab or GitHub Actions)
 
     Helm-based deployments with optional GitOps via ArgoCD  
 
-Demo Apps (Python microservices) 
+5 - Demo Apps (Python microservices) 
 
     Two lightweight Flask/FastAPI services (service-a & service-b) 
 
@@ -92,7 +92,7 @@ Demo Apps (Python microservices)
     
         sealed secrets for secure config delivery
 
-Testing (python) 
+6 - Testing (python) 
 
     Pytest integration tests run in CI/CD 
 
