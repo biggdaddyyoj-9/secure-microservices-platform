@@ -42,3 +42,8 @@ variable "tags" {
     Environment = "dev"
   }
 }
+
+variable "availability_zones" {
+  description = "List of availability zones for subnets"
+  type        = list(string)
+}

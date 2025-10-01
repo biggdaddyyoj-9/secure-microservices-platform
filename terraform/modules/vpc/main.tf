@@ -1,3 +1,9 @@
+provider "aws" {
+  region = "us-east-1"
+}
+
+data "aws_region" "current" {}
+
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
@@ -15,7 +21,7 @@ resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.public_subnet_cidrs[count.index]
   map_public_ip_on_launch = true
-  availability_zone       = "${var.region}a"
+  availability_zone       = var.availability_zones[count.index]
   tags                    = merge(var.tags, { "Tier" = "Public" })
 }
 
@@ -23,13 +29,13 @@ resource "aws_subnet" "private" {
   count             = length(var.private_subnet_cidrs)
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.private_subnet_cidrs[count.index]
-  availability_zone = "${var.region}b"
+  availability_zone = var.availability_zones[count.index]
   tags              = merge(var.tags, { "Tier" = "Private" })
 }
 
 resource "aws_eip" "nat" {
   tags = {
-    Name = "nat-eip" 
+    Name = "nat-eip"
   }
 }
 
@@ -75,7 +81,7 @@ resource "aws_route_table_association" "private" {
 
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
   count             = var.enable_flow_logs ? 1 : 0
-  name              = var.log_group_name
+  name              = "${var.log_group_name}-${data.aws_region.current.name}"
   retention_in_days = 30
   tags              = var.tags
 }
@@ -121,4 +127,10 @@ resource "aws_flow_log" "vpc" {
   traffic_type          = "ALL"
   iam_role_arn          = aws_iam_role.flow_logs_role[0].arn
   vpc_id                = aws_vpc.main.id
+
+  depends_on = [
+    aws_vpc.main,
+    aws_iam_role.flow_logs_role,
+    aws_cloudwatch_log_group.vpc_flow_logs
+  ]
 }
