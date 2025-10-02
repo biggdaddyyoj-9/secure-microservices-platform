@@ -88,9 +88,9 @@ Infrastructure (Terraform)
     Demonstrates: 
         Istio routing/canary rollouts
         
-        logging (EFK) monitoring (Prometheus/Grafana)
+        Logging (EFK) monitoring (Prometheus/Grafana)
     
-        sealed secrets for secure config delivery
+        Sealed secrets for secure config delivery
 
 6 - Testing (python) 
 
