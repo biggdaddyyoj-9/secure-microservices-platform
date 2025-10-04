@@ -134,3 +134,43 @@ resource "aws_flow_log" "vpc" {
     aws_cloudwatch_log_group.vpc_flow_logs
   ]
 }
+
+resource "aws_security_group" "vpc_endpoint_sg" {
+  name        = "vpc-endpoint-cloudwatch-logs-sg"
+  description = "Security group for CloudWatch Logs VPC endpoint"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = var.private_subnet_cidrs
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = var.tags
+}
+
+resource "aws_vpc_endpoint" "cloudwatch_logs" {
+  vpc_id             = aws_vpc.main.id
+  service_name       = "com.amazonaws.${var.region}.logs"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids = [for s in aws_subnet.private : s.id]
+  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name        = "vpc-endpoint-cloudwatch-logs"
+    Environment = "dev"
+    Owner       = "john"
+    Project     = "secure-microservices-platform"
+    Purpose     = "private-access-to-cloudwatch-logs"
+  }
+}
+
