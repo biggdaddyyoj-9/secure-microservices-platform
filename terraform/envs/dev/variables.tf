@@ -17,3 +17,13 @@ variable "region" {
   type        = string
   description = "AWS region to deploy resources"
 }
+
+variable "node_group_config" {
+  type = object({
+    instance_types = list(string)
+    desired_size   = number
+    max_size       = number
+    min_size       = number
+  })
+  description = "Configuration for the default node group"
+}

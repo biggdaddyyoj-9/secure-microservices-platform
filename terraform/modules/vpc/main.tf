@@ -81,7 +81,7 @@ resource "aws_route_table_association" "private" {
 
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
   count             = var.enable_flow_logs ? 1 : 0
-  name              = "${var.log_group_name}-${data.aws_region.current.name}"
+name_prefix         = "${var.log_group_name}-"
   retention_in_days = 30
   tags              = var.tags
 }
