@@ -4,7 +4,7 @@ availability_zones      = ["us-east-1a", "us-east-1b"]
 region                  = "us-east-1"
 
 node_group_config = {
-  instance_types = ["t3.medium"]
+  instance_types = ["t3.micro"]  # ✅ Free Tier eligible
   desired_size   = 2
   max_size       = 3
   min_size       = 1

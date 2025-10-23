@@ -3,18 +3,22 @@ provider "aws" {
 }
 
 # VPC Module
+
+data "aws_availability_zones" "available" {}
+
 module "vpc" {
-  source               = "../../modules/vpc"
-  region               = var.region
-  vpc_cidr             = "10.0.0.0/16"
-  public_subnet_cidrs  = var.public_subnet_cidrs
-  private_subnet_cidrs = var.private_subnet_cidrs
-  availability_zones   = var.availability_zones
-  enable_flow_logs     = true
-  log_group_name       = "/vpc-flow-logs"
+  source                  = "../../modules/vpc"
+  vpc_cidr                = "10.0.0.0/16"
+  public_subnet_cidrs     = var.public_subnet_cidrs
+  private_subnet_cidrs    = var.private_subnet_cidrs
+  availability_zones      = var.availability_zones
+  region                  = var.region
+  enable_flow_logs        = true
+  log_group_name          = "/vpc-flow-logs"
   tags = {
     Project     = "secure-microservices-platform"
     Environment = "dev"
+    Owner       = "John"
   }
 }
 

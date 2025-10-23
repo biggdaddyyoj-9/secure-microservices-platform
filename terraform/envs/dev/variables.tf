@@ -12,12 +12,6 @@ variable "availability_zones" {
   type        = list(string)
   description = "Availability zones for subnets"
 }
-
-variable "region" {
-  type        = string
-  description = "AWS region to deploy resources"
-}
-
 variable "node_group_config" {
   type = object({
     instance_types = list(string)
@@ -27,3 +21,9 @@ variable "node_group_config" {
   })
   description = "Configuration for the default node group"
 }
+variable "region" {
+  description = "AWS region for deployment"
+  type        = string
+  default     = "us-east-1"
+}
+

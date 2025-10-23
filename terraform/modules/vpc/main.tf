@@ -34,13 +34,14 @@ resource "aws_subnet" "private" {
 }
 
 resource "aws_eip" "nat" {
-  tags = {
-    Name = "nat-eip"
-  }
+  count = var.enable_nat_gateway ? 1 : 0
+  tags  = { Name = "nat-eip" }
 }
 
+
 resource "aws_nat_gateway" "nat" {
-  allocation_id = aws_eip.nat.id
+  count         = var.enable_nat_gateway ? 1 : 0
+  allocation_id = aws_eip.nat[0].id
   subnet_id     = aws_subnet.public[0].id
   tags          = var.tags
 }
@@ -68,9 +69,10 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route" "private_nat" {
+  count                  = var.enable_nat_gateway ? 1 : 0
   route_table_id         = aws_route_table.private.id
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.nat.id
+  nat_gateway_id         = aws_nat_gateway.nat[0].id
 }
 
 resource "aws_route_table_association" "private" {
@@ -172,5 +174,18 @@ resource "aws_vpc_endpoint" "cloudwatch_logs" {
     Project     = "secure-microservices-platform"
     Purpose     = "private-access-to-cloudwatch-logs"
   }
+}
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.us-east-1.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.private.id]
+}
+
+resource "aws_vpc_endpoint" "dynamodb" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.us-east-1.dynamodb"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.private.id]
 }
 
