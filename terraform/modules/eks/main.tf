@@ -24,7 +24,7 @@ resource "aws_eks_node_group" "default" {
   }
 
   launch_template {
-    name    = "secure-platform-dev-default"
+    id      = aws_launch_template.eks_nodes.id
     version = "$Latest"
   }
 
@@ -37,3 +37,25 @@ resource "aws_eks_node_group" "default" {
 
   depends_on = [aws_eks_cluster.this]
 }
+
+
+data "aws_ssm_parameter" "eks_ami" {
+  name   = "/aws/service/eks/optimized-ami/1.27/amazon-linux-2/recommended/image_id"
+  region = var.region
+}
+
+resource "aws_launch_template" "eks_nodes" {
+  name_prefix   = "${var.cluster_name}-lt"
+  image_id      = data.aws_ssm_parameter.eks_ami.value
+  instance_type = "t3.micro"
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name        = "${var.cluster_name}-node"
+      Environment = var.environment
+      Owner       = "John"
+    }
+  }
+}
+

@@ -36,6 +36,7 @@ module "eks" {
   node_group_config   = var.node_group_config
   cluster_role_arn    = module.iam.eks_cluster_role_arn
   node_role_arn       = module.iam.eks_node_role_arn
+  environment         = "dev"  
   tags = {
     Environment = "dev"
     Owner       = "John"

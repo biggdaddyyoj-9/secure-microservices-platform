@@ -49,3 +49,8 @@ variable "tags" {
   default     = {}
   description = "Tags to apply to all EKS resources"
 }
+
+variable "environment" {
+  description = "Deployment environment (e.g., dev, staging, prod)"
+  type        = string
+}
