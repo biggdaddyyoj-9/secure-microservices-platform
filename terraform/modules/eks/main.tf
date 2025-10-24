@@ -23,7 +23,10 @@ resource "aws_eks_node_group" "default" {
     min_size     = var.node_group_config.min_size
   }
 
-  instance_types = var.node_group_config.instance_types
+  launch_template {
+    name    = "secure-platform-dev-default"
+    version = "$Latest"
+  }
 
   tags = merge(
     var.tags,
