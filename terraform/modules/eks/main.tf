@@ -1,8 +1,33 @@
+data "aws_ssm_parameter" "eks_ami" {
+  name   = "/aws/service/eks/optimized-ami/1.27/amazon-linux-2/recommended/image_id"
+  region = var.region
+}
+
+resource "aws_launch_template" "eks_nodes" {
+  name_prefix   = "${var.cluster_name}-lt"
+  image_id      = data.aws_ssm_parameter.eks_ami.value
+  instance_type = "t3.micro"
+
+  user_data = base64encode(<<-EOF
+  #!/bin/bash
+  /etc/eks/bootstrap.sh ${var.cluster_name}
+EOF
+  )
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name        = "${var.cluster_name}-node"
+      Environment = var.environment
+      Owner       = "John"
+    }
+  }
+}
+
 resource "aws_eks_cluster" "this" {
   name     = var.cluster_name
   role_arn = var.cluster_role_arn
-
-  version = var.kubernetes_version
+  version  = var.kubernetes_version
 
   vpc_config {
     subnet_ids = var.subnet_ids
@@ -37,25 +62,3 @@ resource "aws_eks_node_group" "default" {
 
   depends_on = [aws_eks_cluster.this]
 }
-
-
-data "aws_ssm_parameter" "eks_ami" {
-  name   = "/aws/service/eks/optimized-ami/1.27/amazon-linux-2/recommended/image_id"
-  region = var.region
-}
-
-resource "aws_launch_template" "eks_nodes" {
-  name_prefix   = "${var.cluster_name}-lt"
-  image_id      = data.aws_ssm_parameter.eks_ami.value
-  instance_type = "t3.micro"
-
-  tag_specifications {
-    resource_type = "instance"
-    tags = {
-      Name        = "${var.cluster_name}-node"
-      Environment = var.environment
-      Owner       = "John"
-    }
-  }
-}
-
