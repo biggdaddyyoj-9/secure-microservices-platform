@@ -1,3 +1,9 @@
+provider "aws" {
+  region = "us-east-1"
+}
+
+data "aws_region" "current" {}
+
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
@@ -15,7 +21,7 @@ resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.public_subnet_cidrs[count.index]
   map_public_ip_on_launch = true
-  availability_zone       = "${var.region}a"
+  availability_zone       = var.availability_zones[count.index]
   tags                    = merge(var.tags, { "Tier" = "Public" })
 }
 
@@ -23,18 +29,19 @@ resource "aws_subnet" "private" {
   count             = length(var.private_subnet_cidrs)
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.private_subnet_cidrs[count.index]
-  availability_zone = "${var.region}b"
+  availability_zone = var.availability_zones[count.index]
   tags              = merge(var.tags, { "Tier" = "Private" })
 }
 
 resource "aws_eip" "nat" {
-  tags = {
-    Name = "nat-eip" 
-  }
+  count = var.enable_nat_gateway ? 1 : 0
+  tags  = { Name = "nat-eip" }
 }
 
+
 resource "aws_nat_gateway" "nat" {
-  allocation_id = aws_eip.nat.id
+  count         = var.enable_nat_gateway ? 1 : 0
+  allocation_id = aws_eip.nat[0].id
   subnet_id     = aws_subnet.public[0].id
   tags          = var.tags
 }
@@ -62,9 +69,10 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route" "private_nat" {
+  count                  = var.enable_nat_gateway ? 1 : 0
   route_table_id         = aws_route_table.private.id
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.nat.id
+  nat_gateway_id         = aws_nat_gateway.nat[0].id
 }
 
 resource "aws_route_table_association" "private" {
@@ -75,7 +83,7 @@ resource "aws_route_table_association" "private" {
 
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
   count             = var.enable_flow_logs ? 1 : 0
-  name              = var.log_group_name
+name_prefix         = "${var.log_group_name}-"
   retention_in_days = 30
   tags              = var.tags
 }
@@ -121,4 +129,63 @@ resource "aws_flow_log" "vpc" {
   traffic_type          = "ALL"
   iam_role_arn          = aws_iam_role.flow_logs_role[0].arn
   vpc_id                = aws_vpc.main.id
+
+  depends_on = [
+    aws_vpc.main,
+    aws_iam_role.flow_logs_role,
+    aws_cloudwatch_log_group.vpc_flow_logs
+  ]
 }
+
+resource "aws_security_group" "vpc_endpoint_sg" {
+  name        = "vpc-endpoint-cloudwatch-logs-sg"
+  description = "Security group for CloudWatch Logs VPC endpoint"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = var.private_subnet_cidrs
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = var.tags
+}
+
+resource "aws_vpc_endpoint" "cloudwatch_logs" {
+  vpc_id             = aws_vpc.main.id
+  service_name       = "com.amazonaws.${var.region}.logs"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids = [for s in aws_subnet.private : s.id]
+  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name        = "vpc-endpoint-cloudwatch-logs"
+    Environment = "dev"
+    Owner       = "john"
+    Project     = "secure-microservices-platform"
+    Purpose     = "private-access-to-cloudwatch-logs"
+  }
+}
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.us-east-1.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.private.id]
+}
+
+resource "aws_vpc_endpoint" "dynamodb" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.us-east-1.dynamodb"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.private.id]
+}
+
