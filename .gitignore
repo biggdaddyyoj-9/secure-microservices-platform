@@ -6,6 +6,7 @@ crash.log
 *.log
 *.backup
 .terraform.lock.hcl
+state.txt
 
 # Ignore provider binaries
 terraform/modules/**/.terraform/
