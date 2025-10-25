@@ -50,48 +50,49 @@ resource "aws_route_table" "public" {                                  # Creates
   tags   = var.tags                                                    # Applies custom tags for tracking and organization
 }
 
-resource "aws_route" "public_internet" {                              # Creates a default route for public subnets to access the internet
-  route_table_id         = aws_route_table.public.id                  # Associates the route with the public route table
-  destination_cidr_block = "0.0.0.0/0"                                # Matches all outbound traffic
-  gateway_id             = aws_internet_gateway.igw.id                # Routes traffic through the Internet Gateway
+
+resource "aws_route" "public_internet" {
+  route_table_id         = aws_route_table.public.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.igw.id
 }
 
-resource "aws_route_table_association" "public" {                     # Associates each public subnet with the public route table
-  count          = length(aws_subnet.public)                          # Iterates over all public subnets
-  subnet_id      = aws_subnet.public[count.index].id                 # Targets each public subnet by index
-  route_table_id = aws_route_table.public.id                         # Associates with the public route table
+resource "aws_route_table_association" "public" {
+  count          = length(aws_subnet.public)
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
 }
 
-resource "aws_route_table" "private" {                                # Creates a route table for private subnets
-  vpc_id = aws_vpc.main.id                                            # Associates the route table with the main VPC
-  tags   = var.tags                                                   # Applies custom tags for tracking and organization
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id
+  tags   = var.tags
 }
 
-resource "aws_route" "private_nat" {                                  # Creates a default route for private subnets to access the internet via NAT
-  count                  = var.enable_nat_gateway ? 1 : 0             # Only creates the route if NAT Gateway is enabled
-  route_table_id         = aws_route_table.private.id                 # Associates the route with the private route table
-  destination_cidr_block = "0.0.0.0/0"                                # Matches all outbound traffic
-  nat_gateway_id         = aws_nat_gateway.nat[0].id                  # Routes traffic through the NAT Gateway
+resource "aws_route" "private_nat" {
+  count                  = var.enable_nat_gateway ? 1 : 0
+  route_table_id         = aws_route_table.private.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat[0].id
 }
 
-resource "aws_route_table_association" "private" {                    # Associates each private subnet with the private route table
-  count          = length(aws_subnet.private)                         # Iterates over all private subnets
-  subnet_id      = aws_subnet.private[count.index].id                # Targets each private subnet by index
-  route_table_id = aws_route_table.private.id                        # Associates with the private route table
+resource "aws_route_table_association" "private" {
+  count          = length(aws_subnet.private)
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private.id
 }
 
-resource "aws_cloudwatch_log_group" "vpc_flow_logs" {                 # Creates a CloudWatch Log Group for VPC flow logs
-  count             = var.enable_flow_logs ? 1 : 0                    # Only creates the log group if flow logs are enabled
-  name_prefix       = "${var.log_group_name}-"                        # Prefix for the log group name
-  retention_in_days = 30                                              # Retains logs for 30 days
-  tags              = var.tags                                        # Applies custom tags for tracking and organization
+resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
+  count             = var.enable_flow_logs ? 1 : 0
+name_prefix         = "${var.log_group_name}-"
+  retention_in_days = 30
+  tags              = var.tags
 }
 
-resource "aws_iam_role" "flow_logs_role" {                            # IAM role for VPC flow logs to write to CloudWatch
-  count = var.enable_flow_logs ? 1 : 0                                # Only creates the role if flow logs are enabled
-  name  = "vpc-flow-logs-role"                                        # Sets the name of the IAM role
+resource "aws_iam_role" "flow_logs_role" {
+  count = var.enable_flow_logs ? 1 : 0
+  name  = "vpc-flow-logs-role"
 
-  assume_role_policy = jsonencode({                                   # Trust policy allowing VPC flow logs service to assume this role
+  assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
       Effect = "Allow",
@@ -103,12 +104,12 @@ resource "aws_iam_role" "flow_logs_role" {                            # IAM role
   })
 }
 
-resource "aws_iam_role_policy" "flow_logs_policy" {                   # IAM policy granting permissions to write logs to CloudWatch
-  count = var.enable_flow_logs ? 1 : 0                                # Only creates the policy if flow logs are enabled
-  name  = "vpc-flow-logs-policy"                                      # Sets the name of the policy
-  role  = aws_iam_role.flow_logs_role[0].id                           # Attaches the policy to the flow logs role
+resource "aws_iam_role_policy" "flow_logs_policy" {
+  count = var.enable_flow_logs ? 1 : 0
+  name  = "vpc-flow-logs-policy"
+  role  = aws_iam_role.flow_logs_role[0].id
 
-  policy = jsonencode({                                               # Defines the permissions for log stream creation and event publishing
+  policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
       Effect = "Allow",
@@ -116,57 +117,57 @@ resource "aws_iam_role_policy" "flow_logs_policy" {                   # IAM poli
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ],
-      Resource = "${aws_cloudwatch_log_group.vpc_flow_logs[0].arn}:*" # Targets all streams under the log group
+      Resource = "${aws_cloudwatch_log_group.vpc_flow_logs[0].arn}:*"
     }]
   })
 }
 
-resource "aws_flow_log" "vpc" {                                       # Enables VPC flow logging to CloudWatch
-  count                 = var.enable_flow_logs ? 1 : 0                # Only creates the flow log if enabled
-  log_destination       = aws_cloudwatch_log_group.vpc_flow_logs[0].arn # Specifies the CloudWatch log group
-  log_destination_type  = "cloud-watch-logs"                          # Sets the destination type
-  traffic_type          = "ALL"                                       # Captures all traffic (accepted, rejected, and all)
-  iam_role_arn          = aws_iam_role.flow_logs_role[0].arn          # IAM role used to publish logs
-  vpc_id                = aws_vpc.main.id                             # VPC to monitor
+resource "aws_flow_log" "vpc" {
+  count                 = var.enable_flow_logs ? 1 : 0
+  log_destination       = aws_cloudwatch_log_group.vpc_flow_logs[0].arn
+  log_destination_type  = "cloud-watch-logs"
+  traffic_type          = "ALL"
+  iam_role_arn          = aws_iam_role.flow_logs_role[0].arn
+  vpc_id                = aws_vpc.main.id
 
-  depends_on = [                                                     # Ensures dependent resources are created first
+  depends_on = [
     aws_vpc.main,
     aws_iam_role.flow_logs_role,
     aws_cloudwatch_log_group.vpc_flow_logs
   ]
 }
 
-resource "aws_security_group" "vpc_endpoint_sg" {                     # Security group for CloudWatch Logs VPC endpoint
-  name        = "vpc-endpoint-cloudwatch-logs-sg"                     # Sets the name of the security group
-  description = "Security group for CloudWatch Logs VPC endpoint"     # Describes the purpose of the security group
-  vpc_id      = aws_vpc.main.id                                       # Associates the SG with the main VPC
+resource "aws_security_group" "vpc_endpoint_sg" {
+  name        = "vpc-endpoint-cloudwatch-logs-sg"
+  description = "Security group for CloudWatch Logs VPC endpoint"
+  vpc_id      = aws_vpc.main.id
 
-  ingress {                                                           # Allows inbound HTTPS traffic from private subnets
+  ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = var.private_subnet_cidrs
   }
 
-  egress {                                                            # Allows all outbound traffic
+  egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = var.tags                                                     # Applies custom tags for tracking and organization
+  tags = var.tags
 }
 
-resource "aws_vpc_endpoint" "cloudwatch_logs" {                       # Creates an interface VPC endpoint for CloudWatch Logs
-  vpc_id             = aws_vpc.main.id                                # Associates the endpoint with the main VPC
-  service_name       = "com.amazonaws.${var.region}.logs"             # Specifies the CloudWatch Logs service in the region
-  vpc_endpoint_type  = "Interface"                                    # Uses an interface endpoint for private connectivity
-  subnet_ids         = [for s in aws_subnet.private : s.id]           # Places the endpoint in private subnets
-  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]        # Applies the security group to the endpoint
-  private_dns_enabled = true                                          # Enables private DNS resolution for the service
+resource "aws_vpc_endpoint" "cloudwatch_logs" {
+  vpc_id             = aws_vpc.main.id
+  service_name       = "com.amazonaws.${var.region}.logs"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids = [for s in aws_subnet.private : s.id]
+  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
+  private_dns_enabled = true
 
-  tags = {                                                            # Applies detailed tags for tracking and purpose
+  tags = {
     Name        = "vpc-endpoint-cloudwatch-logs"
     Environment = "dev"
     Owner       = "john"
@@ -174,17 +175,9 @@ resource "aws_vpc_endpoint" "cloudwatch_logs" {                       # Creates 
     Purpose     = "private-access-to-cloudwatch-logs"
   }
 }
-
-resource "aws_vpc_endpoint" "s3" {                                    # Creates a gateway VPC endpoint for S3
-  vpc_id            = aws_vpc.main.id                                 # Associates the endpoint with the main VPC
-  service_name      = "com.amazonaws.us-east-1.s3"                    # Specifies the S3 service in the region
-  vpc_endpoint_type = "Gateway"                                       # Uses a gateway endpoint for routing traffic
-  route_table_ids   = [aws_route_table.private.id]                    # Associates the endpoint with the private route table
-}
-
-resource "aws_vpc_endpoint" "dynamodb" {                              # Creates a gateway VPC endpoint for DynamoDB
-  vpc_id            = aws_vpc.main.id                                 # Associates the endpoint with the main VPC
-  service_name      = "com.amazonaws.us-east-1.dynamodb"              # Specifies the DynamoDB service in the region
-  vpc_endpoint_type = "Gateway"                                       # Uses a gateway endpoint for routing traffic
-  route_table_ids   = [aws_route_table.private.id]                    # Associates the endpoint with the private route table
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.us-east-1.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.private.id]
 }

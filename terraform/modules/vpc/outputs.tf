@@ -28,11 +28,6 @@ output "vpc_endpoint_s3_id" {                                          # Outputs
   value       = aws_vpc_endpoint.s3.id                                 # Retrieves the endpoint ID from the s3 VPC endpoint resource
 }
 
-output "vpc_endpoint_dynamodb_id" {                                    # Outputs the ID of the VPC Gateway Endpoint for DynamoDB
-  description = "ID of the VPC Gateway Endpoint for DynamoDB"          # Useful for verifying private access to DynamoDB
-  value       = aws_vpc_endpoint.dynamodb.id                           # Retrieves the endpoint ID from the dynamodb VPC endpoint resource
-}
-
 output "vpc_endpoint_cloudwatch_logs_id" {                             # Outputs the ID of the VPC Interface Endpoint for CloudWatch Logs
   description = "ID of the VPC Interface Endpoint for CloudWatch Logs" # Useful for verifying private access to CloudWatch Logs
   value       = aws_vpc_endpoint.cloudwatch_logs.id                    # Retrieves the endpoint ID from the CloudWatch Logs VPC endpoint resource

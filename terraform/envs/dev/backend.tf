@@ -3,9 +3,8 @@ terraform {                                         # Starts the Terraform confi
     bucket         = "secure-microservices-tfstate" # Name of the S3 bucket where Terraform will store the remote state file.
     key            = "envs/dev/terraform.tfstate"   # Path within the bucket to store the state file, allows seperation by env (e.g prod, stag, dev, test)
     region         = "us-east-2"                    # AWS region where the S3 bucket is located, Must match the actual region of the bucket, not necessarily your infrastructure
-    use_lockfile   = true                           # Telling Terraform to create and maintain a .terraform.lock.hcl that tracks provider versions, think provider version locking, not state file concurrency
     encrypt        = true                           # Ensures the state file is encrypted at rest using S3 server-side encryption. not terribly neccessary since ss encryption was toggled at setup but its best practice 
-    dynamodb_table = "terraform-locks"              # Tells Terraform to use dynamodb table "terraform-locks"
+    use_lockfile   = true                           # Telling Terraform to create and maintain a .terraform.lock.hcl that tracks provider versions, think provider version locking, not state file concurrency
   }
 }
 
