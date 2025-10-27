@@ -1,0 +1,7 @@
+image:
+  repository: 414069442676.dkr.ecr.us-east-1.amazonaws.com/secure-microservices/service-a     # Full ECR URI of the Docker image to deploy
+  tag: latest     # Image tag to deploy (use 'latest' or a specific version like 'v1.0.0')
+service:
+  type: LoadBalancer
+# tells Kubernetes where to pull the container image from—this is your private AWS ECR registry.
+# tag controls which version of the image gets deployed. Using latest is fine for dev, but for production, you’ll want to pin a specific version (e.g., tag: v1.2.3) for reproducibility

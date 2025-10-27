@@ -1,0 +1,2 @@
+fastapi         # Lightweight Python web framework for building APIs quickly and cleanly
+uvicorn         # ASGI server used to run FastAPI apps in production (handles async requests efficiently)

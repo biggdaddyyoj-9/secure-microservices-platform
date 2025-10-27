@@ -5,7 +5,7 @@ region                  = "us-east-1"                        # Sets the AWS regi
 
 node_group_config = {                                       # Configuration block for EKS node group autoscaling
   instance_types = ["t3.micro"]      # Free Tier eligible—cost-efficient for dev workloads and testing
-  desired_size   = 2                 # Launches 2 nodes by default—enough to run multiple pods and test HA
-  max_size       = 3                 # Allows scaling up to 3 nodes under load—supports burst capacity
-  min_size       = 1                 # Ensures at least 1 node is always running—maintains cluster availability
+  desired_size   = 5                 # Launches 2 nodes by default—enough to run multiple pods and test HA
+  max_size       = 6                 # Allows scaling up to 3 nodes under load—supports burst capacity
+  min_size       = 4                 # Ensures at least 1 node is always running—maintains cluster availability
 }

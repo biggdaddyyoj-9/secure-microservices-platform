@@ -11,3 +11,32 @@ state.txt
 # Ignore provider binaries
 terraform/modules/**/.terraform/
 terraform/modules/**/.terraform.lock.hcl
+
+# Python virtual environments
+venv/
+**/venv/
+
+# Python cache and build artifacts
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+*.dist-info/
+*.egg
+.eggs/
+build/
+develop-eggs/
+dist/
+pip-wheel-metadata/
+*.manifest
+*.spec
+
+# Logs and local state
+*.log
+*.sqlite3
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+.DS_Store

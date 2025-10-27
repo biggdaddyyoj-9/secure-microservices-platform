@@ -1,0 +1,6 @@
+image:
+  repository: 414069442676.dkr.ecr.us-east-1.amazonaws.com/secure-microservices/service-b  
+  tag: latest                                                                               
+service:
+  port: 80                                                                                 
+  type: ClusterIP                                                                         

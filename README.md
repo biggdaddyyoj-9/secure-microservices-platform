@@ -1,103 +1,86 @@
-Secure Microservices Platform with Terraform, Helm, AWS EKS, Python, & more.
+# Secure Microservices Platform on AWS EKS
 
-Project Overview
+## Project Overview
 
-This project delivers a secure, production grade microservices platform on AWS EKS, built from scratch using Terraform and Helm. It reflects real world DevSecOps workflows, utsing automation, observability, and security first infrastructure.
+This project delivers a secure, production level microservices platform on AWS EKS using Terraform, Python, Helm, and GitLab CI/CD. It follows a phased DevSecOps workflow with infrastructure as code, containerized microservices, and policy driven security.
 
-Infrastructure is provisioned with  Terraform, featuring dynamic VPC, IAM, and EKS modules. State is managed via S3 and DynamoDB with locking and versioning. Teardown scripts ensure frictionless cleanup and future-proof migrations.
+---
 
-The Kubernetes platform is enhanced with Helm-deployed add-ons including:
+## Phase 1: Infrastructure (Terraform)
 
--   Istio for mTLS and traffic routing
--   OAuth2 SSO Proxy for secure ingress
--   EFK stack for centralized logging
--   Prometheus for metrics collections
-    - Grafana for Visualization & alerting
--   Sealed Secrets for secret delivery
+Provision core cloud infrastructure using Terraform:
 
-Security is enforced through:
--   RBAC and NetworkPolicies
--   IRSA (IAM Roles for Service Accounts)
--   Policy-as-Code via Kyverno
+- VPC with public/private subnets across multiple AZs
+- IAM roles for EKS, EC2 nodes, and CI/CD pipelines
+- EKS cluster with managed node groups
+- NAT Gateway for private subnet access
+- S3 for remote state locking and versioning
 
-CI/CD pipelines integrate Trivy vulnerability scans into build → scan → deploy stages using GitHub Actions. Infrastructure and application code are fully version-controlled and documented.
 
-Two lightweight Python Flask microservices demonstrate:
+---
 
--   Istio routing & canary rollouts
--   Centralized logging and metrics
--   Integration testing with pytest
--   Secure deployment workflows
+## Phase 2: Microservices (Python)
 
-1 - Architecture 
+Develop and containerize lightweight Python services:
 
-Infrastructure (Terraform)
+- `apps/service-a` and `apps/service-b` using FastAPI or Flask
+- Dockerfiles for each service
+- Push images to ECR or Docker Hub
+- Write unit/integration tests in `tests/test_services.py`
+- Validate locally, then deploy to EKS
 
-    AWS VPC with 3 public and 3 private subnets across multiple AZs
+---
 
-    IAM roles for nodes, CI/CD pipelines, and restricted service accounts
+## Phase 3: Deployment (Helm)
 
-    EKS cluster with managed node groups (RHEL or Bottlerocket for hardened nodes)
+Deploy services to Kubernetes using Helm:
 
-    Private endpoint access to limit public control plane exposure
+- Create Helm charts for each service
+- Use `values.yaml` for environment-specific configs
+- Deploy with:
+  ```bash
+  helm install service-a ./helm-charts/service-a
 
-    Modular Terraform structure with remote state locking via S3 + DynamoDB
+## Phase 4: Configuration Management (Ansible)
 
-2 - Platform Add-ons (Helm) 
+Automate post-deployment configuration:
 
-    Istio Service mesh with mTLS for service to service encryption 
+- Install monitoring agents (Prometheus, Grafana)
+- Configure S3/DynamoDB access policies
+- Patch EC2 instances or bastion hosts
 
-    OAUTH2 Proxy integrated with an IdP for SSO 
+## Phase 5: Security & Observability
 
-    EFK stack (Elasticsearch, FluentBit, Kibana) for logging 
+Enforce security and monitor workloads:
 
-    Sealed secrets for secure Kubernetes secret delivery 
+- Kyverno for policy enforcement (e.g., block privileged pods)
+- Trivy for container image scanning
+- Sealed Secrets for encrypted secret delivery
+- Prometheus + Grafana for metrics and dashboards
 
-    Prometheus + Grafana for monitoring 
+## Phase 6: CI/CD (GitLab)
 
-3 - Security/Compliance 
+Automate build, test, and deploy workflows:
 
-    Namespace-level multi-tenancy with RBAC, LimitRanges, and NetworkPolicies. 
+- Use ci-cd/pipeline.yml to:
+- Build and push Docker images
+- Run pytest
+- Scan with Trivy
+- Deploy via Helm
+- Enforce policies with Kyverno
 
-    IRSA (IAM Roles for Service Accounts) to enforce least privilege at pod level
+## Testing
 
-    Admission control via Kyverno
+Pytest integration tests validate endpoints and 
 
-    Trivy scans in CI/CD pipeline. 
+- inter-service communication
+- Example: /hello endpoint in service-a
+- Python used for:
+- Microservice development
+- CI/CD test automation
 
-    Node hardening via Ansible STIG baseline (ssh lockdown, auditd, sysctl). 
-
-4 - CI/CD (GitLab or GitHub Actions) 
-
-    Build → Scan → Push → Deploy stages. 
-
-    Trivy for container image scanning. 
-
-    SonarQube (optional) for code quality. 
-
-    Helm-based deployments with optional GitOps via ArgoCD  
-
-5 - Demo Apps (Python microservices) 
-
-    Two lightweight Flask/FastAPI services (service-a & service-b) 
-
-    Service A -> calls Service B (via HTTP) 
-
-    Deploy via Helm charts in helm-charts/apps/ 
-
-    Demonstrates: 
-        Istio routing/canary rollouts
-        
-        Logging (EFK) monitoring (Prometheus/Grafana)
-    
-        Sealed secrets for secure config delivery
-
-6 - Testing (python) 
-
-    Pytest integration tests run in CI/CD 
-
-    Example: Validate /hello endpoint and inter-service communication
-
-    Python used for:
-        Microservice development
-        CI/CD test automation
+## Demo Apps
+- Two lightweight Python services:
+- service-a → exposes /hello and calls service-b
+- service-b → responds to internal requests
+- Deployed via Helm charts in helm-charts/service-a and    helm-charts/service-b
