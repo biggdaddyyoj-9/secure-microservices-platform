@@ -20,6 +20,7 @@
 ## Phase 4: Monitoring & Logging 
 - Prometheus + Grafana: metrics and dashboards confirmed 
 - Loki + Promtail: structured logs flowing and visualized 
+- Kyverno validates Kubernetes maifiests
  
 ## Phase 5: CI/CD (GitLab) 
 - .gitlab-ci.yml pipeline: 
