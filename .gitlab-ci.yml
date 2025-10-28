@@ -1,0 +1,54 @@
+stages:
+  - build
+  - test
+  - scan
+  - policy-check
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_REGISTRY: 414069442676.dkr.ecr.us-east-1.amazonaws.com/secure-microservices
+
+build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker build -t $DOCKER_REGISTRY/service-a:$CI_COMMIT_SHORT_SHA ./apps/service-a
+    - docker push $DOCKER_REGISTRY/service-a:$CI_COMMIT_SHORT_SHA
+    - docker build -t $DOCKER_REGISTRY/service-b:$CI_COMMIT_SHORT_SHA ./apps/service-b
+    - docker push $DOCKER_REGISTRY/service-b:$CI_COMMIT_SHORT_SHA
+
+test:
+  stage: test
+  image: python:3.12
+  script:
+    - pip install -r apps/service-a/requirements.txt
+    - pip install -r apps/service-b/requirements.txt
+    - pytest tests/
+
+scan:
+  stage: scan
+  image: aquasec/trivy:latest
+  script:
+    - trivy image $DOCKER_REGISTRY/service-a:$CI_COMMIT_SHORT_SHA
+    - trivy image $DOCKER_REGISTRY/service-b:$CI_COMMIT_SHORT_SHA
+
+policy-check:
+  stage: policy-check
+  image: ghcr.io/kyverno/kyverno-cli:v1.11.0
+  script:
+    - helm template service-a ./helm-charts/service-a > service-a.yaml
+    - helm template service-b ./helm-charts/service-b > service-b.yaml
+    - kyverno apply policies/ --resource service-a.yaml --fail
+    - kyverno apply policies/ --resource service-b.yaml --fail
+
+deploy:
+  stage: deploy
+  image: alpine/helm:3.12.3
+  script:
+    - helm upgrade --install service-a ./helm-charts/service-a --set image.tag=$CI_COMMIT_SHORT_SHA
+    - helm upgrade --install service-b ./helm-charts/service-b --set image.tag=$CI_COMMIT_SHORT_SHA
+  environment:
+    name: production

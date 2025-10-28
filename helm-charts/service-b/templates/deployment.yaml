@@ -1,19 +1,19 @@
-apiVersion: apps/v1                         #  Kubernetes API version for Deployments
-kind: Deployment                            # Declares this resource as a Deployment
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: {{ .Chart.Name }}                   # Uses chart name as deployment name
+  name: {{ .Chart.Name }}
 spec:
-  replicas: 1                               #  Number of pod replicas
-  selector:                                 #  Selector to match pods
+  replicas: 1
+  selector:
     matchLabels:
-      app: {{ .Chart.Name }}                # Label to match pods
+      app: {{ .Chart.Name }}
   template:
     metadata:
       labels:
-        app: {{ .Chart.Name }}              #  Labels the pod for service matching
+        app: {{ .Chart.Name }}
     spec:
       containers:
-        - name: {{ .Chart.Name }}           #  Container name
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"  # Image from ECR
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           ports:
-            - containerPort: {{ .Values.service.port }}  # Port exposed by container
+            - containerPort: {{ .Values.service.port }}

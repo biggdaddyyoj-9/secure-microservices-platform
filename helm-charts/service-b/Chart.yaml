@@ -1,5 +1,5 @@
 apiVersion: v2
-name: service-b                      # ✅ REQUIRED: name of the chart
+name: service-b                      #  REQUIRED: name of the chart
 description: Helm chart for service-b microservice
-version: 0.1.0                       # ✅ REQUIRED: chart version
+version: 0.1.0                       #  REQUIRED: chart version
 appVersion: "1.0.0"                  # Optional: version of your app

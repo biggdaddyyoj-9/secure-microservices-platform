@@ -4,3 +4,4 @@ image:
 service:
   port: 80                                                                                 
   type: ClusterIP                                                                         
+  

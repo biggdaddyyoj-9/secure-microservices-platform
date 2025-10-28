@@ -7,4 +7,3 @@ appVersion: "1.0.0"                  # Optional: version of your app
 
 
 
-# this file defines the identity and versioning of your Helm chart. It’s required for Helm to recognize, validate, and manage your chart
