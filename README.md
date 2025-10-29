@@ -29,3 +29,4 @@
 - Scan with Trivy 
 - Deploy with Helm # Trigger pipeline
  
+ 
