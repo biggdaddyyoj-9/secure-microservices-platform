@@ -27,4 +27,4 @@
 - Build and push Docker images 
 - Run pytest tests 
 - Scan with Trivy 
-- Deploy with Helm 
+- Deploy with Helm # Trigger pipeline
